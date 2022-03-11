@@ -1,0 +1,63 @@
+---
+title: "Stat403_HW2"
+output: html_document
+---
+
+```{r}
+x <- seq(0,1,0.001)
+y <- 3*x^2-2*x^3
+plot(x,y, type="l", col="blue", main="The curve of 3*x^2-2*x^3 over range [0,1]")
+
+3*0.3^2-2*0.3^3
+(3*0.3^2-2*0.3^3)*(1-(3*0.3^2-2*0.3^3))/100
+
+```
+
+
+```{r}
+n=100
+data_1 = rexp(2000, r=0.25)
+edf_1 = ecdf(data_1)
+x_base = seq(from=0, to=1, by=0.01)
+plot(edf_1, lwd=3, col="blue")
+
+U = runif(2000, min = 0, max = 1)
+W <- -4*log(U)
+edf_2 = ecdf(W)
+lines(edf_2)
+
+
+```
+
+
+```{r}
+data = rnorm(2000,3,2)
+edf = ecdf(data)
+x <- seq(from=-1, to=7, by=0.01)
+plot(edf,xlim=c(-1,7))
+
+for(i in 1:10){
+  data = rnorm(2000,3,2)
+  edf = ecdf(data)
+  lines(edf,xlim=c(-1,7))
+}
+
+lines(x = seq(from=-1, to=7, by=0.01), y = pnorm(x,3,2), xlim=c(-1,7),lwd = 3,col="blue",type="l")
+```
+
+
+```{r}
+library(rmutil)
+library(ggplot2)
+u_1 <- runif(1000, min = 0, max = 0.5)
+data_1 <- log(2*u_1)
+u_2 <- runif(2000, min = 0.5, max = 1)
+data_2 <- -log(2-2*u_2)
+data <- c(data_1, data_2)
+
+exp <- rexp(n=2000, rate=1)
+binom <- 2*rbinom(n=2000, size=1, p=0.5)-1
+cdf <- binom*exp
+qqplot(data, cdf)
+
+```

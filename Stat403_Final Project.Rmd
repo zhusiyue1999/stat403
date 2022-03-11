@@ -1,0 +1,22 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+dat <- read.csv("altadata_covid_us_dataset.csv")
+dat$reported_date <- ymd(dat$reported_date)
+WA <- dat[dat$province_state == "Washington",]
+WA <- WA %>% arrange(reported_date)
+FL <- dat[dat$province_state == "Florida",]
+FL <- FL %>% arrange(reported_date)
+summary(dat)
+```
+
+```{r}
+
+
+```

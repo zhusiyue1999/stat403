@@ -1,0 +1,192 @@
+---
+title: "hw5-403"
+author: "Kathy"
+date: "4/29/2021"
+output: pdf_document
+---
+### Problem 1 (b)
+```{r}
+set.seed(123345)
+exp.lambda = 2.7
+sim.size = 10000
+sample.size = 40
+
+data = matrix(rexp(n=sim.size*sample.size, 
+              exp.lambda),nrow=sim.size,
+              ncol=sample.size)
+exp.ci = function(exp.counts){
+  sample.mean = mean(exp.counts)
+  sample.sd = sd(exp.counts)
+  
+  return(c("lb"=1/sample.mean*(1-1.96/sqrt(sim.size)), 
+           "ub"=1/sample.mean*(1+1.96/sqrt(sim.size))))
+}
+coverage.indicator = numeric(sim.size)
+
+for (i in 1:sim.size){
+  cur.ci = exp.ci(data[i,])
+  
+  if ((cur.ci[1] < exp.lambda) && (cur.ci[2] > exp.lambda)){
+    coverage.indicator[i] = 1
+  }
+}
+(est.cov = mean(coverage.indicator))
+est.cov.error = sqrt(est.cov*(1-est.cov)/sim.size)
+(c(est.cov - 1.96*est.cov.error, est.cov + 1.96*est.cov.error))
+```
+### Problem 2 (c) (d)
+```{r}
+# (c)
+set.seed(123345)
+sim.size = 10000
+sample.size = 100
+pois.lambda = 6
+
+pois.data = matrix(rpois(n=sim.size*sample.size, 
+              lambda=pois.lambda),nrow=sim.size,
+              ncol=sample.size)
+pois.est1 = function(pois.counts){
+  return(mean(pois.counts))
+}
+est.vec1 = numeric(sim.size)
+for (i in 1:sim.size){
+  est.vec1[i] = pois.est1(pois.data[i,])
+}
+pois.ci = function(pois.counts){
+  sample.mean = mean(pois.counts)
+  sample.sd = sd(pois.counts)
+  
+  return(c("lb"=sample.mean - 1.645*sample.sd/sqrt(length(pois.counts)), 
+           "ub"=sample.mean + 1.645*sample.sd/sqrt(length(pois.counts))))
+}
+coverage.indicator = numeric(sim.size)
+
+for (i in 1:sim.size){
+  cur.ci = pois.ci(pois.data[i,])
+  
+  if ((cur.ci[1] < pois.lambda) && (cur.ci[2] > pois.lambda)){
+    coverage.indicator[i] = 1
+  }
+}
+
+(est.cov = mean(coverage.indicator))
+
+# (d)
+proportion = numeric(sim.size)
+for (i in 1:sim.size){
+  if ((est.vec1[i] >= 5.5) && (est.vec1[i] <= 6.5)){
+    proportion[i] =1
+  }
+}
+1-mean(proportion)
+```
+# The estimated coverage is 0.9483 which indicates that the CLT approximation of MLE is a good estimator.
+
+### Problem 3 (b) (c)
+```{r}
+sim.size = 1000
+sample.size = 20
+mu = 2
+sd = 2
+data=  matrix(rnorm(sim.size*sample.size, mu, sd),nrow=sim.size,
+              ncol=sample.size)
+est.vec1 = numeric(sim.size)
+for (i in 1:sim.size){
+  est.vec1[i] = var(data[i,])
+}
+ci = function(counts){
+  return(c("lb" = 0, "ub" = (n-1)*var(counts)/qchisq(0.05, df=n-1)))
+}
+coverage.indicator = numeric(sim.size)
+for (i in 1:sim.size){
+  cur.ci = ci(data[i,])
+
+  if ((cur.ci[1] < 4) && (cur.ci[2] > 4)){
+    coverage.indicator[i] = 1
+  }
+}
+(est.cov = mean(coverage.indicator))
+
+sim.size = 1000
+sample.size = 20
+rate = 1/2
+data=  matrix(rexp(sim.size*sample.size, rate),nrow=sim.size,
+              ncol=sample.size)
+est.vec1 = numeric(sim.size)
+for (i in 1:sim.size){
+  est.vec1[i] = var(data[i,])
+}
+ci = function(counts){
+  return(c("lb" = 0, "ub" = (n-1)*var(counts)/qchisq(0.05, df=n-1)))
+}
+coverage.indicator = numeric(sim.size)
+for (i in 1:sim.size){
+  cur.ci = ci(data[i,])
+  
+  if ((cur.ci[1] < 4) && (cur.ci[2] > 4)){
+    coverage.indicator[i] = 1
+  }
+}
+(est.cov = mean(coverage.indicator))
+```
+
+### Problem 4
+```{r}
+# (a)
+set.seed(378923)
+alpha <- .01
+p0 <- 0.5 
+n = 25
+
+sim.size <- 10000           
+p <- numeric(sim.size)    
+for (sim in 1:sim.size) {
+  samp <- rbinom(n,2, p0) # simulate from H0
+  ttest <- t.test(samp, alternative = "greater", mu = p0)
+  p[sim] <- ttest$p.value
+}
+
+(p.hat <- mean(p < alpha))
+(se.hat <- sqrt(p.hat*(1-p.hat)/sim.size))
+p.hat + 1.96 * c(-1,1) * se.hat
+
+#(b)
+p0=0.75
+n_seq = seq(from=20, to=50, by=5)
+N=10000
+power= rep(NA, length(n_seq))
+for(i_sim in 1:length(n_seq)){
+  n = n_seq[i_sim]
+  sim_power = rep(NA, N)
+  for(i in 1:N){
+    sim = rbinom(n,2, p0)
+    sim_power[i] = t.test(sim, alternative = "greater", mu=p0)$p.value < alpha
+  }
+  power[i_sim] = mean(sim_power)
+}
+
+se <- sqrt(power * (1-power) / N)
+plot(n_seq, power, cex=.75, pch=16, col='red', xlab='n_seq')
+arrows(c(n_seq, n_seq), c(power, power), c(n_seq,n_seq), 
+       c(power+1.96*se, power-1.96*se), length=.05, angle=90)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

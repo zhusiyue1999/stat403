@@ -1,0 +1,85 @@
+---
+title: "Stat403_HW3"
+output: html_document
+---
+
+```{r}
+x <- c(0.10, 0.33, 0.67, 1.00, 1.40, 1.70, 1.97, 2.2, 2.5)
+0.5*(pnorm(x,0,1)-pnorm(-x,0,1))
+
+z <- abs(rnorm(1000,0,1))
+cdf <- ecdf(z)
+0.5*(cdf(x)-cdf(-x))
+
+```
+
+
+```{r}
+result <- rep(NA,9)
+for(i in 1:9) {
+  xi <- x[i]
+  J=function(t) {
+    return(1/sqrt(2*pi)*xi*exp(-(xi*t)^2/2))
+  }
+  t <- runif(1000,0,1)
+  eva_uni <- J(t)
+  result[i] <- mean(eva_uni)
+}
+result
+
+```
+
+```{r}
+f_x = function(x){
+  return(1/(x^10+3*x+abs(cos(x))))
+}
+integrate(f_x, 0, Inf)
+
+n = 10000
+expRate = 0.5
+expSample = rexp(n, rate=expRate)
+(mcarloInt = mean(f_x(expSample)/dexp(expSample, rate=expRate)))
+(mcarloError = sd(f_x(expSample)/dexp(expSample, rate=expRate))/sqrt(n))
+(c(mcarloInt - 1.96*mcarloError, mcarloInt + 1.96*mcarloError))
+
+```
+
+```{r}
+N = 1000
+f_x = function(x){
+  return(1/(1+exp(x^2)))
+}
+x_norm_1 = rnorm(N,0,1)
+eva_norm_1 = f_x(x_norm_1)/dnorm(x_norm_1,0,1)
+mean(eva_norm_1)
+sd(eva_norm_1)/sqrt(N)
+```
+
+
+```{r}
+
+f_x_2 = function(x){
+  return(1/(1+exp(x^2)))
+}
+x_norm_2 = rnorm(N,0,0.8)
+eva_norm_2 = f_x_2(x_norm_2)/dnorm(x_norm_2,0,0.8)
+mean(eva_norm_2)
+sd(eva_norm_2)/sqrt(N)
+
+
+f_x_3 = function(x){
+  return(1/(1+exp(x^2)))
+}
+x_norm_3 = rnorm(N,0,0.5)
+eva_norm_3 = f_x_3(x_norm_3)/dnorm(x_norm_3,0,0.5)
+mean(eva_norm_3)
+sd(eva_norm_3)/sqrt(N)
+
+
+x=seq(-3,3,0.01)
+plot(x,y=1/(1+exp(x^2)),xlim=c(-3,3), ylim=c(0, 0.8),type="l",lwd=3,main="Graph for the Target Function and the Normal Density")
+lines(x=seq(-3,3,0.01),dnorm(x,mean=0,sd=1),type="l",col="red",lwd=3)
+lines(x=seq(-3,3,0.01),dnorm(x,mean=0,sd=0.8),type="l",col="blue",lwd=3)
+lines(x=seq(-3,3,0.01),dnorm(x,mean=0,sd=0.5),type="l",col="green",lwd=3)
+legend("topright",c("target function","N(0,1)","N(0,0.8)","N(0,0.5)"),col=c("black","red","blue","green"),lwd=6)
+```

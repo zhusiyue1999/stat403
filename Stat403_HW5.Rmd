@@ -1,0 +1,203 @@
+---
+title: "Stat403_HW5"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+#1
+set.seed(378923)
+
+M <- matrix(nrow=10000,ncol=40)
+lamda_1 <- rep(NA,10000)
+lamda_2 <- rep(NA,10000)
+
+for(i in 1:10000) {
+  M[i,] <- rexp(40,2.7)
+}
+for(i in 1:10000) {
+  x <- M[i,]
+  lamda_1[i] <- 40/sum(x)
+  lamda_2[i] <- sqrt(40-1)/sqrt(sum((x-mean(x))^2))
+}
+
+x <- sqrt(40)*((2.7/lamda_1)-1)
+
+
+sim.size = 10000
+sample.size = 40
+pois.lambda = 2.7
+
+mse1 <- mean((lamda_1-pois.lambda)^2)
+mse1.mc.error <- sd((lamda_1-pois.lambda)^2)/sqrt(sim.size)
+(c(mse1 - 1.96*mse1.mc.error, mse1 + 1.96*mse1.mc.error))
+```
+
+
+```{r}
+#2
+sim.size = 10000
+sample.size = 100
+sum <- 0
+for(i in 1:10000) {
+  pois <- rpois(n=100,lambda=6)
+  if(mean(pois) > 5.5 && mean(pois) < 6.5) {
+    sum <- sum + 1
+  }
+}
+bias_pois <- mean(pois) - 6
+var_pois <- var(pois)
+bias_pois
+var_pois
+
+pois.data = matrix(rpois(n=sim.size*sample.size, 
+              lambda=6),nrow=sim.size,
+              ncol=sample.size)
+pois.est1 = function(pois.counts){
+  return(mean(pois.counts))
+}
+est.vec1 = numeric(sim.size)
+for (i in 1:sim.size){
+  est.vec1[i] = pois.est1(pois.data[i,])
+}
+pois.ci = function(pois.counts){
+  sample.mean = mean(pois.counts)
+  sample.sd = sd(pois.counts)
+  
+  return(c("lb"=sample.mean - 1.645*sample.sd/sqrt(length(pois.counts)), 
+           "ub"=sample.mean + 1.645*sample.sd/sqrt(length(pois.counts))))
+}
+
+coverage.indicator = numeric(sim.size)
+
+for (i in 1:sim.size){
+  cur.ci = pois.ci(pois.data[i,])
+  if ((cur.ci[1] < 6) && (cur.ci[2] > 6)){
+    coverage.indicator[i] = 1
+  }
+}
+
+(est.cov = mean(coverage.indicator))
+
+# Monte Carlo error -- notice the placement of the square root!
+est.cov.error = sqrt(est.cov*(1-est.cov)/sim.size)
+
+(c(est.cov - 1.96*est.cov.error, est.cov + 1.96*est.cov.error))
+
+prob <- sum/10000
+1-prob
+```
+
+```{r}
+#3(b)
+set.seed(12345)
+sim.size=1000
+sample.size=20
+pois.data <- matrix(nrow=sim.size,ncol=sample.size)
+for(i in 1:sim.size) {
+  pois.data[i,] <- rnorm(20,mean=2,sd=2)
+}
+pois.ci = function(pois.counts){
+  sample.mean = mean(pois.counts)
+  sample.sd = sd(pois.counts)
+  
+  return(c("lb"=0, 
+           "ub"=(sample.size-1)*sample.sd^2/qchisq(0.05,df=sample.size-1)))
+}
+
+coverage.indicator = numeric(sim.size)
+
+for (i in 1:sim.size){
+  cur.ci = pois.ci(pois.data[i,])
+  if ((cur.ci[1] < 4) && (cur.ci[2] > 4)){
+    coverage.indicator[i] = 1
+  }
+}
+
+(est.cov = mean(coverage.indicator))
+
+# Monte Carlo error -- notice the placement of the square root!
+est.cov.error = sqrt(est.cov*(1-est.cov)/sim.size)
+
+(c(est.cov - 1.96*est.cov.error, est.cov + 1.96*est.cov.error))
+```
+```{r}
+#3(c)
+set.seed(12345)
+sim.size=1000
+sample.size=20
+pois.data <- matrix(nrow=sim.size,ncol=sample.size)
+for(i in 1:sim.size) {
+  pois.data[i,] <- rexp(20,rate=0.5)
+}
+pois.ci = function(pois.counts){
+  sample.mean = mean(pois.counts)
+  sample.sd = sd(pois.counts)
+  
+  return(c("lb"=0, 
+           "ub"=(sample.size-1)*sample.sd^2/qchisq(0.05,df=sample.size-1)))
+}
+
+coverage.indicator = numeric(sim.size)
+
+for (i in 1:sim.size){
+  cur.ci = pois.ci(pois.data[i,])
+  if ((cur.ci[1] < 4) && (cur.ci[2] > 4)){
+    coverage.indicator[i] = 1
+  }
+}
+
+(est.cov = mean(coverage.indicator))
+
+est.cov.error = sqrt(est.cov*(1-est.cov)/sim.size)
+
+(c(est.cov - 1.96*est.cov.error, est.cov + 1.96*est.cov.error))
+```
+
+```{r}
+#4(a)
+set.seed(12345)
+alpha <- .01
+
+sim.size <- 10000
+p <- numeric(sim.size)
+for (sim in 1:sim.size) {
+  samp <- rbinom(1,25,0.5)
+  btest <- binom.test(samp,n=25,alternative = "greater", p = 0.5)
+  p[sim] <- btest$p.value
+}
+
+(p.hat <- mean(p < alpha))
+(se.hat <- sqrt(p.hat*(1-p.hat)/sim.size))
+p.hat + 1.96 * c(-1,1) * se.hat
+
+
+```
+
+```{r}
+#4(b)
+set.seed(378923)
+sim.size <- 10000
+mu <- c(20, 25, 30, 35, 40, 45, 50)
+n.mu <- length(mu)
+power <- numeric(n.mu)
+
+for (i in 1:length(mu)) {
+  p <- numeric(sim.size)
+  n <- mu[i]
+  for(sim in 1:sim.size) {
+    samp <- rbinom(1,n,0.75)
+    btest <- binom.test(samp,n=n,p=0.5, alternative='greater') 
+    p[sim] <- btest$p.value
+  }
+  power[i] <- mean(p < 0.01)    
+}
+
+
+se <- sqrt(power * (1-power) / N)
+plot(n_seq, power, cex=.75, pch=16, col='red', xlab='sample size') 
+lines(n_seq, power, lty=3)
+
+arrows(c(n_seq, n_seq),c(power, power),c(n_seq, n_seq),c(power+1.96*se,power-1.96*se),length=0.05,angle=90)
+```

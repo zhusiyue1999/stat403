@@ -1,0 +1,159 @@
+---
+title: "Stat403_HW4"
+output: html_document
+---
+
+```{r}
+#1(a)
+set.seed(5172013)
+x <- c(0.10, 0.33, 0.67, 1.00, 1.40, 1.70, 1.97, 2.2, 2.5)
+pnorm(x)-0.5
+
+result <- rep(NA,9)
+for(i in 1:9) {
+  xi <- x[i]
+  t <- runif(10000,0,1)
+  J=function(t) {
+    return(xi*exp(-(xi*t)^2/2)/sqrt(2*pi))
+  }
+  eva_uni <- J(t)
+  result[i] <- mean(eva_uni)
+}
+result
+```
+
+```{r}
+#1(b)
+unifSample <- c(runif(10000,0,1)[1:5000],1-runif(5000,0,1))
+result_2 <- rep(NA,9)
+for(i in 1:9) {
+  xi <- x[i]
+  J=function(t) {
+    return(xi*exp(-(xi*t)^2/2)/sqrt(2*pi))
+  }
+  t <- unifSample
+  eva_uni <- J(t)
+  result_2[i] <- mean(eva_uni)
+}
+result_2
+```
+
+
+```{r}
+#1(c)
+N <- 1000
+xi <- 1.97
+result <- rep(NA,1000)
+result_2 <- rep(NA,1000)
+for(i in 1:1000) {
+  J=function(t) {
+    return(xi*exp(-(xi*t)^2/2)/sqrt(2*pi))
+  }
+  t1 <- runif(1000,0,1)
+  eva_uni <- J(t1)
+  result[i] <- mean(eva_uni)
+  t2 <- c(t1[1:500],1-t1[1:500])
+  eva <- J(t2)
+  result_2[i] <- mean(eva)
+}
+sd(result)
+sd(result_2)
+```
+
+
+```{r}
+#2(c)
+fx <- function(x) {
+  return(exp(x)/(1+exp(x))^2)
+}
+
+x <-  runif(10000)
+y <- log(x/(1-x))
+hist(y,freq=FALSE,xlim=c(-7,7),ylim=c(0,0.3),main="Comparison between Histogram and Density of f(x)")
+x1 <- seq(-10,10,0.01)
+lines(x=x1,y=exp(x1)/(1+exp(x1))^2,col="red",lwd=3)
+legend("topright",c("histogram of f(x)","density of f(x)"),col=c("black","red"),lwd=6)
+
+```
+
+
+```{r}
+#3(a)
+fx <- function(x) {
+  return(exp(x)/(1+exp(x))^2)
+}
+fc <- function(x) {
+  return(1/(pi*(1+x^2)))
+}
+x=seq(-10,10,0.01)
+plot(x=x,y=exp(x)/(1+exp(x))^2,xlim=c(-10,10),ylim=c(0,0.65),type="l",lwd=3,main="Comparison between exp(x)/(1+exp(x))^2 and 1/(pi*(1+x^2))")
+lines(x=seq(-10,10,0.01),y=2*1/(pi*(1+x^2)),type="l",lwd=3,col="red")
+legend("topright",c("exp(x)/(1+exp(x))^2","2*1/(pi*(1+x^2))"),col=c("black","red"),lwd=6)
+```
+
+```{r}
+#3(b)(c)
+fx <- function(x) {
+  return(exp(x)/(1+exp(x))^2)
+}
+cauchy <- function(x) {
+  return(1/(pi*(1+x^2)))
+}
+N <- 20000
+p = rcauchy(N)
+u <- runif(N)
+y <- p[which(u<fx(p)/(2*cauchy(p)))]
+hist(y,freq=FALSE,xlim=c(-7,7),ylim=c(0,0.3))
+x<-seq(-7,7,0.01)
+lines(x=x,y=exp(x)/(1+exp(x))^2,type="l",lwd=3,col="red")
+
+```
+
+
+```{r}
+#4
+M <- matrix(nrow=10000,ncol=40)
+lamda_1 <- rep(NA,10000)
+lamda_2 <- rep(NA,10000)
+
+for(i in 1:10000) {
+  M[i,] <- rexp(40,2.7)
+}
+for(i in 1:10000) {
+  x <- M[i,]
+  lamda_1[i] <- 40/sum(x)
+  lamda_2[i] <- sqrt(40-1)/sqrt(sum((x-mean(x))^2))
+}
+#bias
+bias_1 <- mean(lamda_1) - 2.7
+bias_2 <- mean(lamda_2) - 2.7
+mcerror_bias_1 <- sd(lamda_1-2.7)/sqrt(10000)
+mcerror_bias_2 <- sd(lamda_2-2.7)/sqrt(10000)
+print("Bias for Lamda_1 and Lamda_2 and the confidence interval")
+bias_1
+bias_2
+c(bias_1 - 1.96*mcerror_bias_1, bias_1 + 1.96*mcerror_bias_1)
+c(bias_2 - 1.96*mcerror_bias_2, bias_2 + 1.96*mcerror_bias_2)
+
+#variance
+var_1 <- var(lamda_1)
+var_2 <- var(lamda_2)
+mcerror_var_1 <- sd((lamda_1-mean(lamda_1))^2)/sqrt(10000)
+mcerror_var_2 <- sd((lamda_2-mean(lamda_2))^2)/sqrt(10000)
+print("Variance for Lamda_1 and Lamda_2 and the confidence interval")
+var_1
+var_2
+c(var_1 - 1.96*mcerror_var_1, var_1 + 1.96*mcerror_var_1)
+c(var_2 - 1.96*mcerror_var_2, var_2 + 1.96*mcerror_var_2)
+
+#mse
+mse_1 <- mean((2.7-lamda_1)^2)
+mse_2 <- mean((2.7-lamda_2)^2)
+mcerror_mse_1 <- sd((lamda_1-2.7)^2)/sqrt(10000)
+mcerror_mse_2 <- sd((lamda_2-2.7)^2)/sqrt(10000)
+print("MSE for Lamda_1 and Lamda_2 and the confidence interval")
+mse_1
+mse_2
+c(mse_1 - 1.96*mcerror_mse_1, mse_1 + 1.96*mcerror_mse_1)
+c(mse_2 - 1.96*mcerror_mse_2, mse_2 + 1.96*mcerror_mse_2)
+```
